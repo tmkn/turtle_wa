@@ -2,6 +2,9 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 
+pub mod log;
+use crate::log::*;
+
 fn main() -> std::io::Result<()> {
     let ttl_path = Path::new("./ttl/simple.ttl");
     let file_result = File::open(ttl_path);
@@ -24,6 +27,13 @@ fn main() -> std::io::Result<()> {
 
         num_lines += 1;
     }
+
+    // log_error(
+    //     "Finished parsing file".to_string(),
+    //     "the offending line".to_string(),
+    //     "offending".to_string(),
+    //     0,
+    // );
 
     Ok(())
 }
@@ -73,23 +83,36 @@ fn parse_line(input: &str, line_num: u32) -> () {
                 println!("IRI: {}", iri.unwrap_or(String::from("NOT FOUND")));
             }
             Some('"') => {
-                println!("Todo ({line_num}:{current_offset}): Parse literal: {remaining_str}");
+                log_todo(
+                    format! {"parse literal"},
+                    input.to_string(),
+                    remaining_str.to_string(),
+                    line_num,
+                );
+
                 current_offset += remaining_str.len();
             }
             Some('#') => {
-                println!(
-                    "Todo ({line_num}:{current_offset}): Parse comment: {}",
-                    remaining_str
+                log_todo(
+                    format! {"parse comment"},
+                    input.to_string(),
+                    remaining_str.to_string(),
+                    line_num,
                 );
+
                 current_offset += remaining_str.len();
             }
             Some('.') => {
                 current_offset += 1;
             }
             Some(token) => {
-                println!(
-                    "Error ({line_num}:{current_offset}): Unexpected token '{token}' in {remaining_str}"
+                log_error(
+                    format! {"Unexpected token '{token}'"},
+                    input.to_string(),
+                    remaining_str.to_string(),
+                    line_num,
                 );
+
                 current_offset += remaining_str.len();
             }
             _ => {}
