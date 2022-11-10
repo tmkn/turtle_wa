@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::prelude::*;
+use std::io::{prelude::*, BufReader};
 use std::path::Path;
 //use std::time::{Duration, Instant};
 
@@ -12,21 +12,18 @@ fn main() -> std::io::Result<()> {
     let ttl_path = Path::new("./ttl/simple.ttl");
     let file_result = File::open(ttl_path);
 
-    let mut file = match file_result {
+    let f = match file_result {
         Ok(file) => file,
         Err(error) => {
             println!("Couldn't find file {}", ttl_path.display());
             return Err(error);
         }
     };
-
-    let mut contents = String::new();
-
-    file.read_to_string(&mut contents)?;
+    let f = BufReader::new(f);
 
     let mut num_lines: u32 = 1;
-    for line in contents.lines() {
-        parse_line(line, num_lines);
+    for line in f.lines() {
+        parse_line(&line.unwrap(), num_lines);
 
         num_lines += 1;
     }
