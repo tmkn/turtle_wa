@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
+//use std::time::{Duration, Instant};
 
 pub mod log;
 use crate::log::*;
@@ -27,13 +28,6 @@ fn main() -> std::io::Result<()> {
 
         num_lines += 1;
     }
-
-    // log_error(
-    //     "Finished parsing file".to_string(),
-    //     "the offending line".to_string(),
-    //     "offending".to_string(),
-    //     0,
-    // );
 
     Ok(())
 }
@@ -80,7 +74,7 @@ fn parse_line(input: &str, line_num: u32) -> () {
                     current_offset += parsed_iri.chars().count() + 2;
                 }
 
-                println!("IRI: {}", iri.unwrap_or(String::from("NOT FOUND")));
+                println!("IRI: {}", iri.unwrap_or_else(|| String::from("NOT FOUND")));
             }
             Some('"') => {
                 log_todo(
