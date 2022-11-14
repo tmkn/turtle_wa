@@ -19,94 +19,82 @@ impl TrigParser {
     }
 }
 
-pub fn parse_iri(input: &str) -> Option<String> {
-    let mut iri = String::new();
-    let mut end_token = false;
-    let start_token = input.chars().next();
-
-    if let Some('<') = start_token {
-        for c in input[1..].chars() {
-            if c == '>' {
-                end_token = true;
-                break;
-            } else {
-                iri.push(c);
-            }
-        }
-    }
-
-    match end_token {
-        true => Some(iri),
-        false => None,
-    }
-}
-
 pub fn parse_line(input: &str, line_num: u32) -> () {
-    let mut current_offset: usize = 0;
+    let mut line_chars = input.chars().into_iter().peekable();
+    let mut line_offset = 0;
 
-    while current_offset < input.chars().count() {
-        let remaining_str = &input[current_offset..];
-
-        let start_token = remaining_str.chars().nth(0);
-
-        match start_token {
-            Some(' ') | Some('\t') => {
+    while let Some(c) = line_chars.next() {
+        match c {
+            ' ' | '\t' => {
                 // skip whitespace
-                current_offset += 1;
+                line_offset += 1;
             }
-            Some('<') => {
-                let iri = parse_iri(remaining_str);
+            '<' => {
+                // parse IRI
 
-                if let Some(ref parsed_iri) = iri {
-                    current_offset += parsed_iri.chars().count() + 2;
-                }
+                let iri = line_chars
+                    .by_ref()
+                    .take_while(|x| *x != '>')
+                    .collect::<String>();
 
-                println!("IRI: {}", iri.unwrap_or_else(|| String::from("NOT FOUND")));
+                println!("IRI: {}", iri);
+
+                line_offset += iri.len() + 2; // +2 for the '<' and '>'
             }
-            Some('"') => {
+            '"' => {
+                // parse literal
+                let mut escaped = false;
+                let collect_literal = |c: &char| -> bool {
+                    if *c == '"' && !escaped {
+                        return false;
+                    } else if *c == '\\' {
+                        escaped = true;
+                    } else {
+                        escaped = false;
+                    }
+
+                    return true;
+                };
+
+                let literal = line_chars
+                    .by_ref()
+                    .take_while(collect_literal)
+                    .collect::<String>();
+
+                println!("Literal: {}", literal);
+
+                line_offset += literal.len() + 2; // +2 for the '"' and '"'
+            }
+            '@' => {
+                let token = line_chars
+                    .by_ref()
+                    .take_while(|x| x.is_alphabetic())
+                    .collect::<String>();
+                let remaining_line = String::from(c) + &token;
+
                 log_todo(
-                    format! {"parse literal"},
+                    format! {"parse @{token}"},
                     input.to_string(),
-                    remaining_str.to_string(),
+                    remaining_line.to_string(),
                     line_num,
                 );
 
-                current_offset += remaining_str.len();
+                line_offset += token.len();
             }
-            Some('#') => {
-                log_todo(
-                    format! {"parse comment"},
-                    input.to_string(),
-                    remaining_str.to_string(),
-                    line_num,
-                );
+            c => {
+                let remaining_line = String::from(c) + &line_chars.by_ref().collect::<String>();
 
-                current_offset += remaining_str.len();
-            }
-            Some('.') => {
-                current_offset += 1;
-            }
-            Some(_token) if remaining_str.starts_with("@prefix") => {
-                log_todo(
-                    format! {"parse @prefix"},
-                    input.to_string(),
-                    remaining_str.to_string(),
-                    line_num,
-                );
+                println!("Remaining line: '{}' - {}", remaining_line, line_offset);
 
-                current_offset += remaining_str.len();
-            }
-            Some(token) => {
                 log_error(
-                    format! {"Unexpected token '{token}'"},
+                    format! {"Unexpected token '{c}'"},
                     input.to_string(),
-                    remaining_str.to_string(),
+                    remaining_line.to_string(),
                     line_num,
                 );
 
-                current_offset += remaining_str.len();
+                line_offset += remaining_line.len();
             }
-            _ => {}
         }
     }
 }
