@@ -6,9 +6,9 @@ fn log(
     offending_line: String,
     offending_token: String,
     num_line: u32,
+    col: usize,
 ) -> () {
-    let offset = offending_line.find(&offending_token).unwrap_or(0);
-    let position = format!("{}:{}", num_line, offset).yellow();
+    let position = format!("{}:{}", num_line, col).yellow();
 
     println!("{position} - {prefix}: {message}");
     println!("");
@@ -16,7 +16,8 @@ fn log(
 
     let line_num_padding = num_line.to_string().len();
     let underline = "~".repeat(offending_token.len()).red();
-    let offset_padding = " ".repeat(offset);
+    let offset_padding = " ".repeat(col);
+
     println!(
         "{}  {}{}",
         format!("{:line_num_padding$}", "").on_white(),
@@ -31,10 +32,18 @@ pub fn log_error(
     offending_line: String,
     offending_token: String,
     num_lines: u32,
+    col: usize,
 ) -> () {
     let prefix = "error".to_string().red().to_string();
 
-    log(prefix, message, offending_line, offending_token, num_lines);
+    log(
+        prefix,
+        message,
+        offending_line,
+        offending_token,
+        num_lines,
+        col,
+    );
 }
 
 pub fn log_todo(
@@ -42,8 +51,16 @@ pub fn log_todo(
     offending_line: String,
     offending_token: String,
     num_lines: u32,
+    col: usize,
 ) -> () {
     let prefix = "todo".to_string().bright_blue().to_string();
 
-    log(prefix, message, offending_line, offending_token, num_lines);
+    log(
+        prefix,
+        message,
+        offending_line,
+        offending_token,
+        num_lines,
+        col,
+    );
 }

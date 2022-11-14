@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, usize};
 
 use crate::log::*;
 
@@ -20,26 +20,23 @@ impl TrigParser {
 }
 
 pub fn parse_line(input: &str, line_num: u32) -> () {
-    let mut line_chars = input.chars().into_iter().peekable();
-    let mut line_offset = 0;
+    let mut line_chars = input.chars().into_iter().enumerate().peekable();
 
-    while let Some(c) = line_chars.next() {
+    while let Some((offset, c)) = line_chars.next() {
         match c {
             ' ' | '\t' => {
                 // skip whitespace
-                line_offset += 1;
             }
             '<' => {
                 // parse IRI
 
                 let iri = line_chars
                     .by_ref()
+                    .map(|(_, c)| c)
                     .take_while(|x| *x != '>')
                     .collect::<String>();
 
                 println!("IRI: {}", iri);
-
-                line_offset += iri.len() + 2; // +2 for the '<' and '>'
             }
             '"' => {
                 // parse literal
@@ -58,6 +55,7 @@ pub fn parse_line(input: &str, line_num: u32) -> () {
 
                 let literal = line_chars
                     .by_ref()
+                    .map(|(_, c)| c)
                     .take_while(collect_literal)
                     .collect::<String>();
 
@@ -67,63 +65,60 @@ pub fn parse_line(input: &str, line_num: u32) -> () {
                 let next_char = line_chars.peek();
                 let not_token_end = |x: &char| *x != ' ' && *x != '\t' && *x != ',' && *x != '.';
                 match next_char {
-                    Some('@') => {
+                    Some((_, '@')) => {
                         // language tag
 
                         let lang_tag = line_chars
                             .by_ref()
+                            .map(|(_, c)| c)
                             .take_while(not_token_end)
                             .collect::<String>();
 
                         println!("Language tag: {}", lang_tag);
-
-                        line_offset += lang_tag.len();
                     }
-                    Some('^') => {
+                    Some((_, '^')) => {
                         // datatype
                         let datatype = line_chars
                             .by_ref()
+                            .map(|(_, c)| c)
                             .take_while(not_token_end)
                             .collect::<String>();
 
                         println!("Datatype: {}", datatype);
-
-                        line_offset += datatype.len();
                     }
                     _ => {}
                 }
-
-                line_offset += literal.len() + 2; // +2 for the '"' and '"'
             }
             '@' => {
                 let token = line_chars
                     .by_ref()
+                    .map(|(_, c)| c)
                     .take_while(|x| x.is_alphabetic())
                     .collect::<String>();
-                let remaining_line = String::from(c) + &token;
+                let parsed_token = String::from(c) + &token;
 
                 log_todo(
                     format! {"parse @{token}"},
                     input.to_string(),
-                    remaining_line.to_string(),
+                    parsed_token.to_string(),
                     line_num,
+                    offset,
                 );
-
-                line_offset += token.len();
             }
             c => {
-                let remaining_line = String::from(c) + &line_chars.by_ref().collect::<String>();
+                let remaining_line =
+                    String::from(c) + &line_chars.by_ref().map(|(_, c)| c).collect::<String>();
 
-                println!("Remaining line: '{}' - {}", remaining_line, line_offset);
+                // println!("Remaining line: '{}' -> {}", remaining_line, offset);
+                // println!("Offending line: '{}'", input.to_string());
 
                 log_error(
                     format! {"Unexpected token '{c}'"},
                     input.to_string(),
                     remaining_line.to_string(),
                     line_num,
+                    offset,
                 );
-
-                line_offset += remaining_line.len();
             }
         }
     }
