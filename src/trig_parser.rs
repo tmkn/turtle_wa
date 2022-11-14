@@ -63,6 +63,36 @@ pub fn parse_line(input: &str, line_num: u32) -> () {
 
                 println!("Literal: {}", literal);
 
+                // check for language tag or datatype
+                let next_char = line_chars.peek();
+                let not_token_end = |x: &char| *x != ' ' && *x != '\t' && *x != ',' && *x != '.';
+                match next_char {
+                    Some('@') => {
+                        // language tag
+
+                        let lang_tag = line_chars
+                            .by_ref()
+                            .take_while(not_token_end)
+                            .collect::<String>();
+
+                        println!("Language tag: {}", lang_tag);
+
+                        line_offset += lang_tag.len();
+                    }
+                    Some('^') => {
+                        // datatype
+                        let datatype = line_chars
+                            .by_ref()
+                            .take_while(not_token_end)
+                            .collect::<String>();
+
+                        println!("Datatype: {}", datatype);
+
+                        line_offset += datatype.len();
+                    }
+                    _ => {}
+                }
+
                 line_offset += literal.len() + 2; // +2 for the '"' and '"'
             }
             '@' => {
