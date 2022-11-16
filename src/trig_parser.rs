@@ -1,4 +1,9 @@
-use std::{collections::HashSet, usize};
+use std::{
+    collections::HashSet,
+    iter::{Enumerate, Peekable},
+    str::Chars,
+    usize,
+};
 
 use crate::log::*;
 
@@ -121,5 +126,60 @@ pub fn parse_line(input: &str, line_num: u32) -> () {
                 );
             }
         }
+    }
+}
+
+// Return the next word in the line
+pub fn next_word(itr: &mut Peekable<Enumerate<Chars>>) -> Option<String> {
+    let mut word = String::new();
+    let mut skip_whitespace = true;
+
+    while let Some((_, c)) = itr.peek() {
+        if c.is_whitespace() {
+            if skip_whitespace {
+                itr.next();
+                continue;
+            } else {
+                break;
+            }
+        }
+
+        word.push(*c);
+        skip_whitespace = false;
+        itr.next();
+    }
+
+    if word.len() > 0 {
+        return Some(word);
+    }
+
+    return None;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_next_word_simple() {
+        let mut itr = "hello world".chars().enumerate().peekable();
+
+        assert_eq!(next_word(&mut itr), Some(String::from("hello")));
+        assert_eq!(next_word(&mut itr), Some(String::from("world")));
+    }
+
+    #[test]
+    fn test_next_word_complex() {
+        let mut itr = "      hello  world         ".chars().enumerate().peekable();
+
+        assert_eq!(next_word(&mut itr), Some(String::from("hello")));
+        assert_eq!(next_word(&mut itr), Some(String::from("world")));
+    }
+
+    #[test]
+    fn test_next_word_all_whitespace() {
+        let mut itr = "               ".chars().enumerate().peekable();
+
+        assert_eq!(next_word(&mut itr), None);
     }
 }
