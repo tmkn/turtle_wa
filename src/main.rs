@@ -6,6 +6,9 @@ use std::path::Path;
 mod trig_parser;
 use crate::trig_parser::*;
 
+mod lexer;
+use crate::lexer::*;
+
 mod log;
 
 fn main() -> std::io::Result<()> {
@@ -23,7 +26,8 @@ fn main() -> std::io::Result<()> {
 
     let mut num_lines: u32 = 1;
     for line in f.lines() {
-        parse_line(&line.unwrap(), num_lines);
+        //parse_line(&line.unwrap(), num_lines);
+        tokenize(&line.unwrap(), num_lines);
 
         num_lines += 1;
     }
