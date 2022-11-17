@@ -5,6 +5,8 @@ use std::{
     usize,
 };
 
+use crate::trig_parser::lexer::{read_iri_lexeme, Token};
+
 use crate::log::*;
 
 struct ParsedToken<T> {
@@ -100,15 +102,41 @@ pub fn parse_line(input: &str, line_num: u32) -> () {
                     .map(|(_, c)| c)
                     .take_while(|x| x.is_alphabetic())
                     .collect::<String>();
-                let parsed_token = String::from(c) + &token;
+                let parsed_token = &String::from(format!("{c}{token}"));
 
-                log_todo(
-                    format! {"parse @{token}"},
-                    input.to_string(),
-                    parsed_token.to_string(),
-                    line_num,
-                    offset,
-                );
+                match parsed_token.as_str() {
+                    "@prefix" => {
+                        let key = &read_iri_lexeme(&mut line_chars);
+                        let value = &read_iri_lexeme(&mut line_chars);
+
+                        match (key, value) {
+                            (Token::PrefixIri(key), Token::RelativeOrAbsoluteIri(value)) => {
+                                println!("@prefix: {} -> {}", key, value);
+                            }
+                            _ => {
+                                log_error(
+                                    format!(
+                                        "Expected prefix IRI and relative or absolute IRI, found {:?} and {:?}",
+                                        key, value
+                                    ),
+                                    input.to_string(),
+                                    parsed_token.to_string(),
+                                    line_num,
+                                    offset,
+                                );
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+
+                // log_todo(
+                //     format! {"parse @{token}"},
+                //     input.to_string(),
+                //     parsed_token.to_string(),
+                //     line_num,
+                //     offset,
+                // );
             }
             c => {
                 let remaining_line =
