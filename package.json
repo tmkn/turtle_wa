@@ -1,0 +1,12 @@
+{
+  "name": "turtle-wa",
+  "version": "0.1.0",
+  "files": [
+    "turtle_wa_bg.wasm",
+    "turtle_wa.js",
+    "turtle_wa.d.ts"
+  ],
+  "module": "turtle_wa.js",
+  "types": "turtle_wa.d.ts",
+  "sideEffects": false
+}

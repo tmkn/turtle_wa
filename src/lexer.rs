@@ -5,6 +5,8 @@ use std::{
     str::Chars,
 };
 
+use wasm_bindgen::prelude::*;
+
 #[derive(PartialEq, Debug)]
 pub enum Lexeme {
     Iri(String),                     // <http://example.com>
@@ -19,6 +21,11 @@ pub enum Lexeme {
     PredicateListToken,              // ;
     ObjectListToken,                 // ,
     Unknown(Option<String>),         // unknown token
+}
+
+#[wasm_bindgen]
+pub fn test() -> u8 {
+    13
 }
 
 pub fn tokenize(line: &str, line_num: u32) -> Vec<Lexeme> {
