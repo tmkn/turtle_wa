@@ -27,7 +27,11 @@ fn main() -> std::io::Result<()> {
     let mut num_lines: u32 = 1;
     for line in f.lines() {
         //parse_line(&line.unwrap(), num_lines);
-        tokenize(&line.unwrap(), num_lines);
+        let tokens = lexer::tokenize(&line.unwrap(), num_lines);
+
+        for token in tokens {
+            println!("{:?}", token);
+        }
 
         num_lines += 1;
     }
