@@ -154,7 +154,7 @@ fn read_iri(itr: &mut Peekable<Enumerate<Chars>>) -> Lexeme {
     }
 }
 
-fn is_local_uri(token: &String) -> bool {
+fn is_local_uri(token: &str) -> bool {
     let mut colons: Vec<(usize, char)> = Vec::new();
     let itr = token.chars().enumerate();
 

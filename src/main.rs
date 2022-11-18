@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::{prelude::*, BufReader};
 use std::path::Path;
-//use std::time::{Duration, Instant};
+use std::time::{Duration, Instant};
 
 mod trig_parser;
 use crate::trig_parser::*;
@@ -24,17 +24,21 @@ fn main() -> std::io::Result<()> {
     };
     let f = BufReader::new(f);
 
+    let now = Instant::now();
+
     let mut num_lines: u32 = 1;
     for line in f.lines() {
         //parse_line(&line.unwrap(), num_lines);
         let tokens = lexer::tokenize(&line.unwrap(), num_lines);
 
-        for token in tokens {
-            println!("{:?}", token);
-        }
+        // for token in tokens {
+        //     println!("{:?}", token);
+        // }
 
         num_lines += 1;
     }
+
+    println!("Parse time: {}ms", now.elapsed().as_millis());
 
     Ok(())
 }
