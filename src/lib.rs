@@ -5,12 +5,12 @@ pub fn test2() -> u8 {
     10
 }
 
-#[wasm_bindgen]
-//#[wasm_bindgen(getter_with_clone)]
-pub struct Rudolph {
-    speed: u32,
-    lumens: u32,
-}
+// #[wasm_bindgen]
+// //#[wasm_bindgen(getter_with_clone)]
+// pub struct Rudolph {
+//     speed: u32,
+//     lumens: u32,
+// }
 
 // #[wasm_bindgen]
 // pub enum Common {
