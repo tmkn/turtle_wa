@@ -23,11 +23,11 @@ pub fn return_boxed_js_value_slice() -> Box<[JsValue]> {
     vec![
         JsValue::NULL,
         JsValue::UNDEFINED,
-        Rudolph {
-            speed: 10,
-            lumens: 10,
-        }
-        .into(),
+        // Rudolph {
+        //     speed: 10,
+        //     lumens: 10,
+        // }
+        // .into(),
     ]
     .into_boxed_slice()
 }

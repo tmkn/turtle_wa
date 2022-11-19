@@ -25,21 +25,6 @@ export function test2() {
     return ret;
 }
 
-const heap = new Array(32).fill(undefined);
-
-heap.push(undefined, null, true, false);
-
-let heap_next = heap.length;
-
-function addHeapObject(obj) {
-    if (heap_next === heap.length) heap.push(heap.length + 1);
-    const idx = heap_next;
-    heap_next = heap[idx];
-
-    heap[idx] = obj;
-    return idx;
-}
-
 let cachedInt32Memory0 = new Int32Array();
 
 function getInt32Memory0() {
@@ -58,7 +43,13 @@ function getUint32Memory0() {
     return cachedUint32Memory0;
 }
 
+const heap = new Array(32).fill(undefined);
+
+heap.push(undefined, null, true, false);
+
 function getObject(idx) { return heap[idx]; }
+
+let heap_next = heap.length;
 
 function dropObject(idx) {
     if (idx < 36) return;
@@ -101,13 +92,6 @@ export function return_boxed_js_value_slice() {
 /**
 */
 export class Rudolph {
-
-    static __wrap(ptr) {
-        const obj = Object.create(Rudolph.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
 
     __destroy_into_raw() {
         const ptr = this.ptr;
@@ -156,10 +140,6 @@ async function load(module, imports) {
 function getImports() {
     const imports = {};
     imports.wbg = {};
-    imports.wbg.__wbg_rudolph_new = function(arg0) {
-        const ret = Rudolph.__wrap(arg0);
-        return addHeapObject(ret);
-    };
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
     };
