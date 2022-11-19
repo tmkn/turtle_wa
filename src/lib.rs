@@ -23,6 +23,7 @@ pub fn return_boxed_js_value_slice() -> Box<[JsValue]> {
     vec![
         JsValue::NULL,
         JsValue::UNDEFINED,
+        "hello".into(),
         // Rudolph {
         //     speed: 10,
         //     lumens: 10,
