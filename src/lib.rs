@@ -6,13 +6,7 @@ pub fn test2() -> u8 {
 }
 
 #[wasm_bindgen]
-struct Santa {
-    color: String,
-    phrase: String,
-}
-
-//#[wasm_bindgen]
-#[wasm_bindgen(getter_with_clone)]
+//#[wasm_bindgen(getter_with_clone)]
 pub struct Rudolph {
     speed: u32,
     lumens: u32,
