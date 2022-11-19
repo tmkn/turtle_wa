@@ -9,6 +9,14 @@ export function test2() {
     return ret;
 }
 
+/**
+* @returns {number}
+*/
+export function test1() {
+    const ret = wasm.test1();
+    return ret;
+}
+
 async function load(module, imports) {
     if (typeof Response === 'function' && module instanceof Response) {
         if (typeof WebAssembly.instantiateStreaming === 'function') {

@@ -4,12 +4,17 @@
 * @returns {number}
 */
 export function test2(): number;
+/**
+* @returns {number}
+*/
+export function test1(): number;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly test2: () => number;
+  readonly test1: () => number;
 }
 
 export type SyncInitInput = BufferSource | WebAssembly.Module;
