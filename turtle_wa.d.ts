@@ -4,12 +4,31 @@
 * @returns {number}
 */
 export function test2(): number;
+/**
+* @returns {any[]}
+*/
+export function return_boxed_js_value_slice(): any[];
+/**
+*/
+export class Rudolph {
+  free(): void;
+}
+/**
+*/
+export class Santa {
+  free(): void;
+}
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly test2: () => number;
+  readonly __wbg_santa_free: (a: number) => void;
+  readonly __wbg_rudolph_free: (a: number) => void;
+  readonly return_boxed_js_value_slice: (a: number) => void;
+  readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
+  readonly __wbindgen_free: (a: number, b: number) => void;
 }
 
 export type SyncInitInput = BufferSource | WebAssembly.Module;
