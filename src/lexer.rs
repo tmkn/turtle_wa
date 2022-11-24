@@ -111,8 +111,7 @@ pub fn tokenize(line: &str, line_num: u32) -> Vec<Lexeme> {
             _ => {
                 let token = read_token(&mut itr);
 
-                // todo handle cases where token is a prefixed iri etc
-                match is_local_uri(&token) {
+                match is_prefixed_uri(&token) {
                     true => tokens.push(Lexeme::PrefixedIri(token.to_string())),
                     false => tokens.push(Lexeme::Unknown(Some(token.to_string()))),
                 }
@@ -154,7 +153,7 @@ fn read_iri(itr: &mut Peekable<Enumerate<Chars>>) -> Lexeme {
     }
 }
 
-fn is_local_uri(token: &str) -> bool {
+fn is_prefixed_uri(token: &str) -> bool {
     let mut colons: Vec<(usize, char)> = Vec::new();
     let itr = token.chars().enumerate();
 
@@ -251,7 +250,7 @@ fn read_token(itr: &mut Peekable<Enumerate<Chars>>) -> String {
 
     while let Some((_, c)) = itr.peek() {
         match c {
-            ' ' => {
+            ' ' | ',' => {
                 break;
             }
             _ => {

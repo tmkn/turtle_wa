@@ -48,6 +48,66 @@ mod parser {
                 }]
             );
         }
+
+        #[test]
+        fn parse_object_list_iri() {
+            let lexemes: &Vec<Lexeme> = &vec![
+                Lexeme::Iri("http://example.org/subject".to_string()),
+                Lexeme::Iri("http://example.org/predicate".to_string()),
+                Lexeme::Iri("http://example.org/object1".to_string()),
+                Lexeme::ObjectListToken,
+                Lexeme::Iri("http://example.org/object2".to_string()),
+                Lexeme::EndToken,
+            ];
+            let mut context = ParseContext::new();
+            let triples = parse(&lexemes, &mut context);
+
+            assert_eq!(
+                triples,
+                vec![
+                    Triple {
+                        subject: Iri("http://example.org/subject".to_string()),
+                        predicate: Iri("http://example.org/predicate".to_string()),
+                        object: Object::Iri("http://example.org/object1".to_string()),
+                    },
+                    Triple {
+                        subject: Iri("http://example.org/subject".to_string()),
+                        predicate: Iri("http://example.org/predicate".to_string()),
+                        object: Object::Iri("http://example.org/object2".to_string()),
+                    },
+                ]
+            );
+        }
+
+        #[test]
+        fn parse_object_list_literal() {
+            let lexemes: &Vec<Lexeme> = &vec![
+                Lexeme::Iri("http://example.org/subject".to_string()),
+                Lexeme::Iri("http://example.org/predicate".to_string()),
+                Lexeme::LangLiteral("Spiderman".to_string(), "en".to_string()),
+                Lexeme::ObjectListToken,
+                Lexeme::LangLiteral("Человек-паук".to_string(), "ru".to_string()),
+                Lexeme::EndToken,
+            ];
+            let mut context = ParseContext::new();
+            let triples = parse(&lexemes, &mut context);
+
+            assert_eq!(
+                triples,
+                vec![
+                    Triple {
+                        subject: Iri("http://example.org/subject".to_string()),
+                        predicate: Iri("http://example.org/predicate".to_string()),
+                        object: Object::LangLiteral("Spiderman".to_string(), "en".to_string()),
+                    },
+                    Triple {
+                        subject: Iri("http://example.org/subject".to_string()),
+                        predicate: Iri("http://example.org/predicate".to_string()),
+                        object: Object::LangLiteral("Человек-паук".to_string(), "ru".to_string()),
+                    },
+                ]
+            );
+        }
     }
 
     mod relative_and_absolute_uri {

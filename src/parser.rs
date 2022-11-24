@@ -4,7 +4,7 @@ use std::collections::HashMap;
 // todo parser
 use crate::lexer::*;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Object {
     Iri(String),
     Literal(String),
@@ -28,7 +28,7 @@ impl TryFrom<Lexeme> for Object {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Iri(pub String);
 
 impl TryFrom<Lexeme> for Iri {
@@ -118,6 +118,26 @@ pub fn parse(lexemes: &Vec<Lexeme>, context: &mut ParseContext) -> Vec<Triple> {
                     datatype.to_string(),
                 ));
             }
+            Lexeme::Prefix(key, value) => {
+                context.prefixes.insert(key.to_string(), value.to_string());
+            }
+            Lexeme::A => {
+                if let (Some(_), None, None) = current_triple {
+                    current_triple.1 = Some(Iri(
+                        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_string()
+                    ));
+                }
+            }
+            Lexeme::ObjectListToken => {
+                if let (Some(subject), Some(predicate), Some(object)) = current_triple {
+                    triples.push(Triple {
+                        subject: subject.clone(),
+                        predicate: predicate.clone(),
+                        object,
+                    });
+                    current_triple = (Some(subject), Some(predicate), None);
+                }
+            }
             Lexeme::EndToken => {
                 match current_triple {
                     (Some(subject), Some(predicate), Some(object)) => {
@@ -131,16 +151,6 @@ pub fn parse(lexemes: &Vec<Lexeme>, context: &mut ParseContext) -> Vec<Triple> {
                 }
 
                 current_triple = (None, None, None);
-            }
-            Lexeme::Prefix(key, value) => {
-                context.prefixes.insert(key.to_string(), value.to_string());
-            }
-            Lexeme::A => {
-                if let (Some(_), None, None) = current_triple {
-                    current_triple.1 = Some(Iri(
-                        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_string()
-                    ));
-                }
             }
             _ => {
                 // ignore other lexemes for now
