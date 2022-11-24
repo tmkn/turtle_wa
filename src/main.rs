@@ -38,11 +38,15 @@ fn main() -> std::io::Result<()> {
         num_lines += 1;
     }
 
-    for triple in triples {
+    for triple in &triples {
         println!("{:?}", triple);
     }
 
-    println!("Parse time: {}ms", now.elapsed().as_millis());
+    println!(
+        "Parse time: {}ms for {} triples",
+        now.elapsed().as_millis(),
+        triples.len()
+    );
 
     Ok(())
 }

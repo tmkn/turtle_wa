@@ -2,7 +2,7 @@
 
 A turtle parser written in Rust
 
-Infact, this is a learning project, learning Rust as I go!
+This is a learning project, infact learning Rust as I go!
 
 The goal is to write a parser that can parse at least basic turtle syntax (no (nested) blank nodes, collections).
 
@@ -20,7 +20,7 @@ The parser is currently able to parse the following things:
  - [x] `"literal@en"`
  - [x] `"literal"^^xsd:string`
  - [x] `"literal"^^<http://www.w3.org/2001/XMLSchema#string>`
- - [ ] object lists
+ - [x] object lists `"literal@en", <http://example/iri>, ...`
  - [ ] predicate lists
  - [ ] numbers
  - [ ] booleans
