@@ -18,6 +18,7 @@ pub enum Lexeme {
     EndToken,                        // .
     PredicateListToken,              // ;
     ObjectListToken,                 // ,
+    Comment(String),                 // # comment
     Unknown(Option<String>),         // unknown token
 }
 
@@ -107,6 +108,11 @@ pub fn tokenize(line: &str, line_num: u32) -> Vec<Lexeme> {
             }
             ' ' => {
                 itr.next();
+            }
+            '#' => {
+                let comment = read_comment(&mut itr);
+
+                tokens.push(comment);
             }
             _ => {
                 let token = read_token(&mut itr);
@@ -302,4 +308,10 @@ fn skip_whitespace(itr: &mut Peekable<Enumerate<Chars>>) {
             break;
         }
     }
+}
+
+fn read_comment(itr: &mut Peekable<Enumerate<Chars>>) -> Lexeme {
+    let comment: String = itr.skip(1).map(|(_, c)| c).collect();
+
+    Lexeme::Comment(comment)
 }

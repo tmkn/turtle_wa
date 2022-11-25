@@ -103,6 +103,24 @@ fn parse_object_list_iri() {
 }
 
 #[test]
+fn parse_comment() {
+    let input = "<http://one.example/subject1> <http://one.example/predicate1> <http://one.example/object1> . # A triple with all absolute IRIs";
+
+    let tokens = tokenize(&input, 0);
+
+    assert_eq!(
+        tokens,
+        vec![
+            Lexeme::Iri("http://one.example/subject1".to_string()),
+            Lexeme::Iri("http://one.example/predicate1".to_string()),
+            Lexeme::Iri("http://one.example/object1".to_string()),
+            Lexeme::EndToken,
+            Lexeme::Comment(" A triple with all absolute IRIs".to_string()),
+        ],
+    );
+}
+
+#[test]
 fn parse_object_list_literal() {
     let input = "<http://example.org/#spiderman> <http://xmlns.com/foaf/0.1/name> \"Spiderman\", \"Человек-паук\"@ru .";
 
