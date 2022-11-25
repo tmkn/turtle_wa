@@ -12,6 +12,12 @@ pub enum Object {
     DataTypeLiteral(String, String),
 }
 
+impl From<Iri> for Object {
+    fn from(item: Iri) -> Self {
+        Object::Iri(item.0)
+    }
+}
+
 impl TryFrom<Lexeme> for Object {
     type Error = ();
 
@@ -64,23 +70,30 @@ impl ParseContext {
 }
 
 pub fn parse(lexemes: &Vec<Lexeme>, context: &mut ParseContext) -> Vec<Triple> {
-    // todo
     let mut triples: Vec<Triple> = Vec::new();
     let mut current_triple: (Option<Iri>, Option<Iri>, Option<Object>) = (None, None, None);
     let mut itr = lexemes.iter().peekable();
-    //let mut context = ParseContext::new();
 
     while let Some(lexeme) = itr.next() {
         match lexeme {
             Lexeme::Iri(iri) => match current_triple {
                 (None, None, None) => {
-                    current_triple.0 = Some(Iri(iri.to_string()));
+                    let iri = match parse_iri(lexeme, context) {
+                        Some(iri) => current_triple.0 = Some(iri),
+                        None => continue,
+                    };
                 }
                 (Some(_), None, None) => {
-                    current_triple.1 = Some(Iri(iri.to_string()));
+                    let iri = match parse_iri(lexeme, context) {
+                        Some(iri) => current_triple.1 = Some(iri),
+                        None => continue,
+                    };
                 }
                 (Some(_), Some(_), None) => {
-                    current_triple.2 = Some(Object::Iri(iri.to_string()));
+                    let iri = match parse_iri(lexeme, context) {
+                        Some(iri) => current_triple.2 = Some(Object::from(iri)),
+                        None => continue,
+                    };
                 }
                 _ => {}
             },
@@ -120,6 +133,9 @@ pub fn parse(lexemes: &Vec<Lexeme>, context: &mut ParseContext) -> Vec<Triple> {
             }
             Lexeme::Prefix(key, value) => {
                 context.prefixes.insert(key.to_string(), value.to_string());
+            }
+            Lexeme::Base(base) => {
+                context.base = Some(base.to_string());
             }
             Lexeme::A => {
                 if let (Some(_), None, None) = current_triple {
@@ -161,10 +177,10 @@ pub fn parse(lexemes: &Vec<Lexeme>, context: &mut ParseContext) -> Vec<Triple> {
     triples
 }
 
-pub fn parse_iri(lexeme: Lexeme, context: ParseContext) -> Option<Iri> {
+pub fn parse_iri(lexeme: &Lexeme, context: &ParseContext) -> Option<Iri> {
     match lexeme {
         Lexeme::Iri(iri) => match is_relative_iri(&iri.to_string()) {
-            true => match context.base {
+            true => match &context.base {
                 Some(base) => {
                     let mut full_iri = base.clone();
 
@@ -174,22 +190,22 @@ pub fn parse_iri(lexeme: Lexeme, context: ParseContext) -> Option<Iri> {
                 }
                 None => None,
             },
-            false => Some(Iri(iri)),
+            false => Some(Iri(iri.to_string())),
         },
         Lexeme::PrefixedIri(prefixed_iri) => {
-            parse_prefixed_iri(Lexeme::PrefixedIri(prefixed_iri), &context)
+            parse_prefixed_iri(Lexeme::PrefixedIri(prefixed_iri.to_string()), &context)
         }
         _ => None,
     }
 }
 
 fn is_relative_iri(iri: &str) -> bool {
-    let parsed_iri = iri.parse::<Uri>().unwrap();
+    let is_relative = match iri.parse::<Uri>() {
+        Ok(uri) => uri.scheme().is_none(),
+        Err(_) => return false,
+    };
 
-    match parsed_iri.scheme() {
-        Some(_) => false,
-        None => true,
-    }
+    is_relative
 }
 
 fn parse_prefixed_iri(lexeme: Lexeme, context: &ParseContext) -> Option<Iri> {

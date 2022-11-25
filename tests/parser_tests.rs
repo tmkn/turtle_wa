@@ -118,7 +118,8 @@ mod parser {
             fn parse_absolute_iri() {
                 let context = ParseContext::new();
 
-                let result = parse_iri(Lexeme::Iri("http://example.org/foo".to_string()), context);
+                let result =
+                    parse_iri(&Lexeme::Iri("http://example.org/foo".to_string()), &context);
 
                 assert_eq!(result, Some(Iri("http://example.org/foo".to_string())));
             }
@@ -130,7 +131,7 @@ mod parser {
                     prefixes: HashMap::new(),
                 };
 
-                let result = parse_iri(Lexeme::Iri("foo".to_string()), context);
+                let result = parse_iri(&Lexeme::Iri("foo".to_string()), &context);
 
                 assert_eq!(result, Some(Iri("http://example.org/foo".to_string())));
             }
@@ -150,7 +151,7 @@ mod parser {
                 )]),
             };
 
-            let result = parse_iri(Lexeme::PrefixedIri("foo:bar".to_string()), context);
+            let result = parse_iri(&Lexeme::PrefixedIri("foo:bar".to_string()), &context);
 
             assert_eq!(result, Some(Iri("http://example.org/bar".to_string())));
         }
@@ -162,7 +163,7 @@ mod parser {
                 prefixes: HashMap::from([(String::from(":"), String::from("http://example.org/"))]),
             };
 
-            let result = parse_iri(Lexeme::PrefixedIri(":bar".to_string()), context);
+            let result = parse_iri(&Lexeme::PrefixedIri(":bar".to_string()), &context);
 
             assert_eq!(result, Some(Iri("http://example.org/bar".to_string())));
         }
@@ -174,9 +175,71 @@ mod parser {
                 prefixes: HashMap::from([]),
             };
 
-            let result = parse_iri(Lexeme::PrefixedIri("foo:bar".to_string()), context);
+            let result = parse_iri(&Lexeme::PrefixedIri("foo:bar".to_string()), &context);
 
             assert_eq!(result, None);
+        }
+    }
+
+    mod base {
+        use super::super::*;
+
+        #[test]
+        fn parse_single_base() {
+            let lexemes: &Vec<Lexeme> = &vec![
+                Lexeme::Base("http://example.org/".to_string()),
+                Lexeme::Iri("subject1".to_string()),
+                Lexeme::Iri("predicate1".to_string()),
+                Lexeme::Iri("object1".to_string()),
+                Lexeme::EndToken,
+            ];
+            let mut context = ParseContext::new();
+            let triples = parse(&lexemes, &mut context);
+
+            assert_eq!(context.base, Some("http://example.org/".to_string()));
+            assert_eq!(
+                triples,
+                vec![Triple {
+                    subject: Iri("http://example.org/subject1".to_string()),
+                    predicate: Iri("http://example.org/predicate1".to_string()),
+                    object: Object::Iri("http://example.org/object1".to_string()),
+                },]
+            );
+        }
+
+        #[test]
+        fn parse_multi_base() {
+            let lexemes: &Vec<Lexeme> = &vec![
+                Lexeme::Base("http://example1.org/".to_string()),
+                Lexeme::Iri("subject1".to_string()),
+                Lexeme::Iri("predicate1".to_string()),
+                Lexeme::Iri("object1".to_string()),
+                Lexeme::EndToken,
+                Lexeme::Base("http://example2.com/".to_string()),
+                Lexeme::Iri("subject2".to_string()),
+                Lexeme::Iri("predicate2".to_string()),
+                Lexeme::Iri("object2".to_string()),
+                Lexeme::EndToken,
+            ];
+            let mut context = ParseContext::new();
+            let triples = parse(&lexemes, &mut context);
+
+            assert_eq!(context.base, Some("http://example2.com/".to_string()));
+            assert_eq!(
+                triples,
+                vec![
+                    Triple {
+                        subject: Iri("http://example1.org/subject1".to_string()),
+                        predicate: Iri("http://example1.org/predicate1".to_string()),
+                        object: Object::Iri("http://example1.org/object1".to_string()),
+                    },
+                    Triple {
+                        subject: Iri("http://example2.com/subject2".to_string()),
+                        predicate: Iri("http://example2.com/predicate2".to_string()),
+                        object: Object::Iri("http://example2.com/object2".to_string()),
+                    },
+                ]
+            );
         }
     }
 }
