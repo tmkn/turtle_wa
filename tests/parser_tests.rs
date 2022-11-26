@@ -157,6 +157,46 @@ mod parser {
         }
 
         #[test]
+        fn parse_multiple_prefixed_uri() {
+            let lexemes = vec![
+                Lexeme::Prefix(":".to_string(), "http://example.org/".to_string()),
+                Lexeme::EndToken,
+                Lexeme::PrefixedIri(":subject".to_string()),
+                Lexeme::PrefixedIri(":predicate".to_string()),
+                Lexeme::PrefixedIri(":object".to_string()),
+                Lexeme::EndToken,
+                Lexeme::Prefix(
+                    "foaf:".to_string(),
+                    "http://xmlns.com/foaf/0.1/".to_string(),
+                ),
+                Lexeme::EndToken,
+                Lexeme::PrefixedIri(":subject".to_string()),
+                Lexeme::PrefixedIri("foaf:name".to_string()),
+                Lexeme::Literal("Alice".to_string()),
+                Lexeme::EndToken,
+            ];
+            let mut context = ParseContext::new();
+
+            let triples = parse(&lexemes, &mut context);
+
+            assert_eq!(
+                triples,
+                vec![
+                    Triple {
+                        subject: Iri("http://example.org/subject".to_string()),
+                        predicate: Iri("http://example.org/predicate".to_string()),
+                        object: Object::Iri("http://example.org/object".to_string()),
+                    },
+                    Triple {
+                        subject: Iri("http://example.org/subject".to_string()),
+                        predicate: Iri("http://xmlns.com/foaf/0.1/name".to_string()),
+                        object: Object::Literal("Alice".to_string()),
+                    },
+                ]
+            );
+        }
+
+        #[test]
         fn parse_prefixed_uri_simple_prefix() {
             let context = ParseContext {
                 base: None,

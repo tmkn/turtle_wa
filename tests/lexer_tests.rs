@@ -181,3 +181,37 @@ fn parse_object_list_literal_mix() {
         ],
     );
 }
+
+#[test]
+fn parse_prefixed_uris() {
+    let input = vec![
+        "@prefix : <http://example.org/> .",
+        ":subject :predicate :object .",
+        "@prefix foaf: <http://xmlns.com/foaf/0.1/> .",
+        ":subject foaf:name \"Alice\" .",
+    ]
+    .join("\n");
+
+    let tokens = tokenize(&input, 0);
+
+    assert_eq!(
+        tokens,
+        vec![
+            Lexeme::Prefix(":".to_string(), "http://example.org/".to_string()),
+            Lexeme::EndToken,
+            Lexeme::PrefixedIri(":subject".to_string()),
+            Lexeme::PrefixedIri(":predicate".to_string()),
+            Lexeme::PrefixedIri(":object".to_string()),
+            Lexeme::EndToken,
+            Lexeme::Prefix(
+                "foaf:".to_string(),
+                "http://xmlns.com/foaf/0.1/".to_string()
+            ),
+            Lexeme::EndToken,
+            Lexeme::PrefixedIri(":subject".to_string()),
+            Lexeme::PrefixedIri("foaf:name".to_string()),
+            Lexeme::Literal("Alice".to_string()),
+            Lexeme::EndToken,
+        ],
+    );
+}
