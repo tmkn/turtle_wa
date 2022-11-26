@@ -106,7 +106,7 @@ pub fn tokenize(line: &str, line_num: u32) -> Vec<Lexeme> {
                 tokens.push(Lexeme::A);
                 itr.next();
             }
-            ' ' => {
+            ' ' | '\t' => {
                 itr.next();
             }
             '#' => {
