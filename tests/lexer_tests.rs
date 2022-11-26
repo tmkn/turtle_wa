@@ -215,3 +215,30 @@ fn parse_prefixed_uris() {
         ],
     );
 }
+
+#[test]
+fn parse_predicate_list() {
+    let input = vec![
+        "<http://example.org/#spiderman> <http://www.perceive.net/schemas/relationship/enemyOf> <http://example.org/#green-goblin> ;",
+        "        <http://xmlns.com/foaf/0.1/name> \"Spiderman\"@de ;",
+        " 				<http://xmlns.com/foaf/0.1/name> \"Spiderman\" ."]
+        .join("\n");
+
+    let tokens = tokenize(&input, 0);
+
+    assert_eq!(
+        tokens,
+        vec![
+            Lexeme::Iri("http://example.org/#spiderman".to_string()),
+            Lexeme::Iri("http://www.perceive.net/schemas/relationship/enemyOf".to_string()),
+            Lexeme::Iri("http://example.org/#green-goblin".to_string()),
+            Lexeme::PredicateListToken,
+            Lexeme::Iri("http://xmlns.com/foaf/0.1/name".to_string()),
+            Lexeme::LangLiteral("Spiderman".to_string(), "de".to_string()),
+            Lexeme::PredicateListToken,
+            Lexeme::Iri("http://xmlns.com/foaf/0.1/name".to_string()),
+            Lexeme::Literal("Spiderman".to_string()),
+            Lexeme::EndToken,
+        ],
+    );
+}

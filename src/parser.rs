@@ -58,6 +58,7 @@ pub struct Triple {
 pub struct ParseContext {
     pub base: Option<String>,
     pub prefixes: HashMap<String, String>,
+    pub subject: Option<Iri>, // save subject when encountering a predicate list
 }
 
 impl ParseContext {
@@ -65,13 +66,15 @@ impl ParseContext {
         ParseContext {
             base: None,
             prefixes: HashMap::new(),
+            subject: None,
         }
     }
 }
 
 pub fn parse(lexemes: &Vec<Lexeme>, context: &mut ParseContext) -> Vec<Triple> {
     let mut triples: Vec<Triple> = Vec::new();
-    let mut current_triple: (Option<Iri>, Option<Iri>, Option<Object>) = (None, None, None);
+    let mut current_triple: (Option<Iri>, Option<Iri>, Option<Object>) =
+        (context.subject.to_owned(), None, None);
     let mut itr = lexemes.iter().peekable();
 
     while let Some(lexeme) = itr.next() {
@@ -154,6 +157,18 @@ pub fn parse(lexemes: &Vec<Lexeme>, context: &mut ParseContext) -> Vec<Triple> {
                     current_triple = (Some(subject), Some(predicate), None);
                 }
             }
+            Lexeme::PredicateListToken => {
+                if let (Some(subject), Some(predicate), Some(object)) = current_triple {
+                    triples.push(Triple {
+                        subject: subject.clone(),
+                        predicate: predicate.clone(),
+                        object: object,
+                    });
+
+                    context.subject = Some(subject.to_owned());
+                    current_triple = (Some(subject), None, None);
+                }
+            }
             Lexeme::EndToken => {
                 match current_triple {
                     (Some(subject), Some(predicate), Some(object)) => {
@@ -166,6 +181,7 @@ pub fn parse(lexemes: &Vec<Lexeme>, context: &mut ParseContext) -> Vec<Triple> {
                     _ => {}
                 }
 
+                context.subject = None;
                 current_triple = (None, None, None);
             }
             _ => {

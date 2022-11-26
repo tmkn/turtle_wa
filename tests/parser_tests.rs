@@ -129,6 +129,7 @@ mod parser {
                 let context = ParseContext {
                     base: Some(String::from("http://example.org/")),
                     prefixes: HashMap::new(),
+                    subject: None,
                 };
 
                 let result = parse_iri(&Lexeme::Iri("foo".to_string()), &context);
@@ -149,6 +150,7 @@ mod parser {
                     String::from("foo:"),
                     String::from("http://example.org/"),
                 )]),
+                subject: None,
             };
 
             let result = parse_iri(&Lexeme::PrefixedIri("foo:bar".to_string()), &context);
@@ -201,6 +203,7 @@ mod parser {
             let context = ParseContext {
                 base: None,
                 prefixes: HashMap::from([(String::from(":"), String::from("http://example.org/"))]),
+                subject: None,
             };
 
             let result = parse_iri(&Lexeme::PrefixedIri(":bar".to_string()), &context);
@@ -210,10 +213,7 @@ mod parser {
 
         #[test]
         fn parse_prefixed_uri_with_no_prefix_set() {
-            let context = ParseContext {
-                base: None,
-                prefixes: HashMap::from([]),
-            };
+            let context = ParseContext::new();
 
             let result = parse_iri(&Lexeme::PrefixedIri("foo:bar".to_string()), &context);
 

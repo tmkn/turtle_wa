@@ -21,7 +21,7 @@ The parser is currently able to parse the following things:
  - [x] `"literal"^^xsd:string`
  - [x] `"literal"^^<http://www.w3.org/2001/XMLSchema#string>`
  - [x] object lists `"literal@en", <http://example/iri>, ...`
- - [ ] predicate lists
+ - [x] predicate lists
  - [ ] numbers
  - [ ] booleans
  - [ ] blank nodes
