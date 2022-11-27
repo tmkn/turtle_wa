@@ -242,3 +242,28 @@ fn parse_predicate_list() {
         ],
     );
 }
+
+#[test]
+fn parse_boolean() {
+    let input = vec![
+        "@prefix : <http://example.org/stats> .",
+        "<http://somecountry.example/census2007>",
+        "    :isLandlocked false .           # xsd:boolean",
+    ]
+    .join("\n");
+
+    let tokens = tokenize(&input, 0);
+
+    assert_eq!(
+        tokens,
+        vec![
+            Lexeme::Prefix(":".to_string(), "http://example.org/stats".to_string()),
+            Lexeme::EndToken,
+            Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+            Lexeme::PrefixedIri(":isLandlocked".to_string()),
+            Lexeme::Unknown("false".to_string()),
+            Lexeme::EndToken,
+            Lexeme::Comment(" xsd:boolean".to_string()),
+        ],
+    );
+}

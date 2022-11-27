@@ -19,7 +19,7 @@ pub enum Lexeme {
     PredicateListToken,              // ;
     ObjectListToken,                 // ,
     Comment(String),                 // # comment
-    Unknown(Option<String>),         // unknown token
+    Unknown(String),                 // unknown token
 }
 
 pub fn tokenize(line: &str, line_num: u32) -> Vec<Lexeme> {
@@ -33,14 +33,11 @@ pub fn tokenize(line: &str, line_num: u32) -> Vec<Lexeme> {
                 tokens.push(iri);
             }
             '"' => {
-                let literal = read_literal(&mut itr);
+                let result = read_literal(&mut itr);
 
-                match literal {
-                    Lexeme::Literal(_) => tokens.push(literal),
-                    Lexeme::LangLiteral(_, _) => tokens.push(literal),
-                    Lexeme::DataTypeLiteral(_, _) => tokens.push(literal),
-                    Lexeme::Unknown(str) => tokens.push(Lexeme::Unknown(str)),
-                    _ => tokens.push(Lexeme::Unknown(None)),
+                match result {
+                    Some(lexeme) => tokens.push(lexeme),
+                    _ => {}
                 }
             }
             '@' | 'P' | 'B' => {
@@ -63,12 +60,12 @@ pub fn tokenize(line: &str, line_num: u32) -> Vec<Lexeme> {
                                         tokens.push(Lexeme::Prefix(token, iri));
                                     }
                                     _ => {
-                                        tokens.push(Lexeme::Unknown(Some(token)));
+                                        tokens.push(Lexeme::Unknown(token));
                                     }
                                 }
                             }
 
-                            false => tokens.push(Lexeme::Unknown(Some(token))),
+                            false => tokens.push(Lexeme::Unknown(token)),
                         }
                     }
                     "@base" | "BASE" => {
@@ -81,12 +78,12 @@ pub fn tokenize(line: &str, line_num: u32) -> Vec<Lexeme> {
                                 tokens.push(Lexeme::Base(iri));
                             }
                             _ => {
-                                tokens.push(Lexeme::Unknown(Some(token)));
+                                tokens.push(Lexeme::Unknown(token));
                             }
                         }
                     }
                     _ => {
-                        tokens.push(Lexeme::Unknown(Some(token.to_string())));
+                        tokens.push(Lexeme::Unknown(token.to_string()));
                     }
                 }
             }
@@ -119,7 +116,7 @@ pub fn tokenize(line: &str, line_num: u32) -> Vec<Lexeme> {
 
                 match is_prefixed_uri(&token) {
                     true => tokens.push(Lexeme::PrefixedIri(token.to_string())),
-                    false => tokens.push(Lexeme::Unknown(Some(token.to_string()))),
+                    false => tokens.push(Lexeme::Unknown(token.to_string())),
                 }
             }
         }
@@ -155,7 +152,7 @@ fn read_iri(itr: &mut Peekable<Enumerate<Chars>>) -> Lexeme {
 
     match (found_start, found_end) {
         (true, true) => Lexeme::Iri(iri),
-        (_, _) => Lexeme::Unknown(Some(iri)),
+        (_, _) => Lexeme::Unknown(iri),
     }
 }
 
@@ -174,7 +171,7 @@ fn is_prefixed_uri(token: &str) -> bool {
     matches!((first, second), (Some((_, _)), None) if !token.ends_with(':'))
 }
 
-fn read_literal(itr: &mut Peekable<Enumerate<Chars>>) -> Lexeme {
+fn read_literal(itr: &mut Peekable<Enumerate<Chars>>) -> Option<Lexeme> {
     let literal = read_literal_value(itr);
 
     match literal {
@@ -187,7 +184,7 @@ fn read_literal(itr: &mut Peekable<Enumerate<Chars>>) -> Lexeme {
 
                     let language_tag = read_token(itr);
 
-                    Lexeme::LangLiteral(literal, language_tag)
+                    Some(Lexeme::LangLiteral(literal, language_tag))
                 }
                 Some((_, '^')) => {
                     itr.nth(1);
@@ -195,14 +192,14 @@ fn read_literal(itr: &mut Peekable<Enumerate<Chars>>) -> Lexeme {
                     let data_type = read_iri(itr);
 
                     match data_type {
-                        Lexeme::Iri(iri) => Lexeme::DataTypeLiteral(literal, iri),
-                        _ => Lexeme::Unknown(Some(literal)),
+                        Lexeme::Iri(iri) => Some(Lexeme::DataTypeLiteral(literal, iri)),
+                        _ => Some(Lexeme::Unknown(literal)),
                     }
                 }
-                _ => Lexeme::Literal(literal),
+                _ => Some(Lexeme::Literal(literal)),
             }
         }
-        None => Lexeme::Unknown(None),
+        None => None,
     }
 }
 

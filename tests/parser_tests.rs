@@ -1,3 +1,6 @@
+// #[cfg(test)]
+// use pretty_assertions::assert_eq;
+
 use std::collections::HashMap;
 
 use turtle_wa::lexer::*;
@@ -279,6 +282,58 @@ mod parser {
                         object: Object::Iri("http://example2.com/object2".to_string()),
                     },
                 ]
+            );
+        }
+    }
+
+    mod boolean {
+        use super::super::*;
+
+        #[test]
+        fn parse_false() {
+            let lexemes: &Vec<Lexeme> = &vec![
+                Lexeme::Prefix(":".to_string(), "http://example.org/stats".to_string()),
+                Lexeme::EndToken,
+                Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+                Lexeme::PrefixedIri(":isLandlocked".to_string()),
+                Lexeme::Unknown("false".to_string()),
+                Lexeme::EndToken,
+                Lexeme::Comment(" xsd:boolean".to_string()),
+            ];
+            let mut context = ParseContext::new();
+            let triples = parse(&lexemes, &mut context);
+
+            assert_eq!(
+                triples,
+                vec![Triple {
+                    subject: Iri("http://somecountry.example/census2007".to_string()),
+                    predicate: Iri("http://example.org/statsisLandlocked".to_string()),
+                    object: Object::Boolean(false),
+                },]
+            );
+        }
+
+        #[test]
+        fn parse_true() {
+            let lexemes: &Vec<Lexeme> = &vec![
+                Lexeme::Prefix(":".to_string(), "http://example.org/stats".to_string()),
+                Lexeme::EndToken,
+                Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+                Lexeme::PrefixedIri(":isLandlocked".to_string()),
+                Lexeme::Unknown("true".to_string()),
+                Lexeme::EndToken,
+                Lexeme::Comment(" xsd:boolean".to_string()),
+            ];
+            let mut context = ParseContext::new();
+            let triples = parse(&lexemes, &mut context);
+
+            assert_eq!(
+                triples,
+                vec![Triple {
+                    subject: Iri("http://somecountry.example/census2007".to_string()),
+                    predicate: Iri("http://example.org/statsisLandlocked".to_string()),
+                    object: Object::Boolean(true),
+                },]
             );
         }
     }

@@ -23,7 +23,7 @@ The parser is currently able to parse the following things:
  - [x] object lists `"literal@en", <http://example/iri>, ...`
  - [x] predicate lists
  - [ ] numbers
- - [ ] booleans
+ - [x] booleans
  - [ ] blank nodes
  - [ ] multi line literals
  - [ ] collections
