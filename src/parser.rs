@@ -10,6 +10,7 @@ pub enum Object {
     Literal(String),
     LangLiteral(String, String),
     DataTypeLiteral(String, String),
+    Boolean(bool),
 }
 
 impl From<Iri> for Object {
@@ -76,6 +77,7 @@ pub fn parse(lexemes: &Vec<Lexeme>, context: &mut ParseContext) -> Vec<Triple> {
     let mut current_triple: (Option<Iri>, Option<Iri>, Option<Object>) =
         (context.subject.to_owned(), None, None);
     let mut itr = lexemes.iter().peekable();
+    let mut is_incomplete_triple = true;
 
     while let Some(lexeme) = itr.next() {
         match lexeme {
@@ -183,10 +185,30 @@ pub fn parse(lexemes: &Vec<Lexeme>, context: &mut ParseContext) -> Vec<Triple> {
 
                 context.subject = None;
                 current_triple = (None, None, None);
+                is_incomplete_triple = false;
             }
-            _ => {
-                // ignore other lexemes for now
+            Lexeme::Unknown(token) => match token.as_str() {
+                "true" => {
+                    current_triple.2 = Some(Object::Boolean(true));
+                }
+                "false" => {
+                    current_triple.2 = Some(Object::Boolean(false));
+                }
+                _ => {
+                    println!("Unknown token: {}", token);
+                }
+            },
+            Lexeme::Comment(_) => {}
+        }
+    }
+
+    // pass subject to next line
+    if is_incomplete_triple {
+        match current_triple {
+            (Some(subject), None, None) => {
+                context.subject = Some(subject);
             }
+            _ => {}
         }
     }
 
