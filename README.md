@@ -27,5 +27,5 @@ The parser is currently able to parse the following things:
  - [x] double `1.663E-4`
  - [x] boolean
  - [ ] blank nodes
- - [ ] multi line literals
+ - [x] multi line literals
  - [ ] collections

@@ -15,6 +15,7 @@ pub enum Lexeme {
     Literal(String),                 // "literal"
     LangLiteral(String, String),     // "literal"@en
     DataTypeLiteral(String, String), // "literal"^^<iri>
+    MultilineLiteral(String),        // """literal"""
     EndToken,                        // .
     PredicateListToken,              // ;
     ObjectListToken,                 // ,
@@ -22,9 +23,56 @@ pub enum Lexeme {
     Unknown(String),                 // unknown token
 }
 
-pub fn tokenize(line: &str, line_num: u32) -> Vec<Lexeme> {
+pub struct LexerContext {
+    pub parse_multiline: bool,
+    pub parsed_multilines: Vec<Lexeme>,
+}
+
+impl LexerContext {
+    pub fn new() -> LexerContext {
+        LexerContext {
+            parse_multiline: false,
+            parsed_multilines: Vec::new(),
+        }
+    }
+}
+
+pub fn tokenize(line: &str, line_num: u32, context: &mut LexerContext) -> Vec<Lexeme> {
     let mut tokens = Vec::new();
     let mut itr = line.chars().into_iter().enumerate().peekable();
+
+    if context.parse_multiline {
+        match read_multiline_part(&mut itr) {
+            (multiline, true) => {
+                context
+                    .parsed_multilines
+                    .push(Lexeme::MultilineLiteral(multiline));
+
+                let multiline_str = context
+                    .parsed_multilines
+                    .iter()
+                    .map(|line| match line {
+                        Lexeme::MultilineLiteral(line) => line.clone(),
+                        _ => panic!("Unexpected lexeme in multiline literal"),
+                    })
+                    .collect::<Vec<String>>()
+                    .join("\n");
+
+                tokens.push(Lexeme::MultilineLiteral(multiline_str));
+
+                // reset context
+                context.parse_multiline = false;
+                context.parsed_multilines.clear();
+            }
+            (multiline, false) => {
+                context
+                    .parsed_multilines
+                    .push(Lexeme::MultilineLiteral(multiline));
+
+                context.parse_multiline = true;
+            }
+        };
+    }
 
     while let Some((offset, c)) = itr.peek() {
         match c {
@@ -33,7 +81,7 @@ pub fn tokenize(line: &str, line_num: u32) -> Vec<Lexeme> {
                 tokens.push(iri);
             }
             '"' => {
-                let result = read_literal(&mut itr);
+                let result = read_literal(&mut itr, context);
 
                 match result {
                     Some(lexeme) => tokens.push(lexeme),
@@ -171,7 +219,10 @@ fn is_prefixed_uri(token: &str) -> bool {
     matches!((first, second), (Some((_, _)), None) if !token.ends_with(':'))
 }
 
-fn read_literal(itr: &mut Peekable<Enumerate<Chars>>) -> Option<Lexeme> {
+fn read_literal(
+    itr: &mut Peekable<Enumerate<Chars>>,
+    context: &mut LexerContext,
+) -> Option<Lexeme> {
     let literal = read_literal_value(itr);
 
     match literal {
@@ -196,11 +247,67 @@ fn read_literal(itr: &mut Peekable<Enumerate<Chars>>) -> Option<Lexeme> {
                         _ => Some(Lexeme::Unknown(literal)),
                     }
                 }
+                Some((_, '\"')) => {
+                    let (multiline_part, end) = read_multiline_part(itr);
+
+                    match end {
+                        true => {
+                            context.parse_multiline = false;
+                            context.parsed_multilines = Vec::new();
+                            Some(Lexeme::MultilineLiteral(multiline_part))
+                        }
+                        false => {
+                            context.parse_multiline = true;
+                            context
+                                .parsed_multilines
+                                .push(Lexeme::MultilineLiteral(multiline_part));
+                            None
+                        }
+                    }
+                }
                 _ => Some(Lexeme::Literal(literal)),
             }
         }
         None => None,
     }
+}
+
+//  read until end of triple quotes or end of line
+fn read_multiline_part(itr: &mut Peekable<Enumerate<Chars>>) -> (String, bool) {
+    let mut multi_line_part = String::new();
+    let mut consecutive_quotes = 0;
+
+    // when called 2 quotes have already been read, check for 3rd to skip
+    match itr.peek() {
+        Some((_, '\"')) => {
+            itr.next();
+        }
+        _ => {}
+    }
+
+    while let Some((_, c)) = itr.peek() {
+        match c {
+            '\"' => {
+                multi_line_part.push(*c);
+                itr.next();
+                consecutive_quotes += 1;
+
+                if consecutive_quotes == 3 {
+                    break;
+                }
+            }
+            _ => {
+                multi_line_part.push(*c);
+                itr.next();
+                consecutive_quotes = 0;
+            }
+        }
+    }
+
+    (
+        multi_line_part.trim_end_matches("\"\"\"").to_string(),
+        consecutive_quotes == 3,
+    )
 }
 
 fn read_literal_value(itr: &mut Peekable<Enumerate<Chars>>) -> Option<String> {
