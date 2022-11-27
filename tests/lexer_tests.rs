@@ -407,6 +407,69 @@ fn parse_negative_double() {
 }
 
 #[test]
+fn parse_prefixed_literal() {
+    let input = vec![
+        "@prefix : <http://example.org/stats> .",
+        "<http://somecountry.example/census2007>",
+        "    :isLandlocked \"false\"^^:boolean .",
+    ]
+    .join("\n");
+
+    let tokens = tokenize(&input, 0, &mut LexerContext::new());
+
+    assert_eq!(
+        tokens,
+        vec![
+            Lexeme::Prefix(":".to_string(), "http://example.org/stats".to_string()),
+            Lexeme::EndToken,
+            Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+            Lexeme::PrefixedIri(":isLandlocked".to_string()),
+            Lexeme::DataTypeLiteral("false".to_string(), ":boolean".to_string()),
+            Lexeme::EndToken,
+        ],
+    );
+}
+
+#[test]
+fn parse_prefixed_literal2() {
+    let input = vec![
+        "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .",
+        "@prefix show: <http://example.org/vocab/show/> .",
+        "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .",
+        "",
+        "show:218 rdfs:label \"That Seventies Show\"^^xsd:string . ",
+    ]
+    .join("\n");
+
+    let tokens = tokenize(&input, 0, &mut LexerContext::new());
+
+    assert_eq!(
+        tokens,
+        vec![
+            Lexeme::Prefix(
+                "rdfs:".to_string(),
+                "http://www.w3.org/2000/01/rdf-schema#".to_string()
+            ),
+            Lexeme::EndToken,
+            Lexeme::Prefix(
+                "show:".to_string(),
+                "http://example.org/vocab/show/".to_string()
+            ),
+            Lexeme::EndToken,
+            Lexeme::Prefix(
+                "xsd:".to_string(),
+                "http://www.w3.org/2001/XMLSchema#".to_string()
+            ),
+            Lexeme::EndToken,
+            Lexeme::PrefixedIri("show:218".to_string()),
+            Lexeme::PrefixedIri("rdfs:label".to_string()),
+            Lexeme::DataTypeLiteral("That Seventies Show".to_string(), "xsd:string".to_string()),
+            Lexeme::EndToken,
+        ],
+    );
+}
+
+#[test]
 fn parse_multiline() {
     let input = vec![
         "<http://somecountry.example/census2007> <http://example.org/stats/gravity> \"\"\"hello multi",

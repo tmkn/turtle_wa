@@ -135,10 +135,32 @@ pub fn parse(lexemes: &Vec<Lexeme>, context: &mut ParseContext) -> Vec<Triple> {
                 current_triple.2 = Some(Object::LangLiteral(literal.to_string(), lang.to_string()));
             }
             Lexeme::DataTypeLiteral(literal, datatype) => {
-                current_triple.2 = Some(Object::DataTypeLiteral(
-                    literal.to_string(),
-                    datatype.to_string(),
-                ));
+                // todo better logic to parse valid/prefixed iri (datatype)
+
+                // check if datatype is a valid iri
+                match parse_iri(&Lexeme::Iri(datatype.to_owned()), context) {
+                    Some(iri) => {
+                        current_triple.2 = Some(Object::DataTypeLiteral(
+                            literal.to_string(),
+                            iri.0.to_string(),
+                        ))
+                    }
+                    None => {
+                        // wasn't a valid iri, try to parse it as a prefixed iri
+                        let iri = match parse_prefixed_iri(
+                            Lexeme::PrefixedIri(datatype.to_owned()),
+                            &context,
+                        ) {
+                            Some(iri) => {
+                                current_triple.2 = Some(Object::DataTypeLiteral(
+                                    literal.to_string(),
+                                    iri.0.to_string(),
+                                ))
+                            }
+                            None => {}
+                        };
+                    }
+                };
             }
             Lexeme::MultilineLiteral(multiline) => {
                 current_triple.2 = Some(Object::MultilineLiteral(multiline.to_string()));
