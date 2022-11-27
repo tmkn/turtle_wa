@@ -267,3 +267,111 @@ fn parse_boolean() {
         ],
     );
 }
+
+#[test]
+fn parse_integer() {
+    let input =
+        "<http://somecountry.example/census2007> <http://example.org/stats/population> 1234567890 .";
+
+    let tokens = tokenize(&input, 0);
+
+    assert_eq!(
+        tokens,
+        vec![
+            Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+            Lexeme::Iri("http://example.org/stats/population".to_string()),
+            Lexeme::Unknown("1234567890".to_string()),
+            Lexeme::EndToken,
+        ],
+    );
+}
+
+#[test]
+fn parse_negative_integer() {
+    let input =
+        "<http://somecountry.example/census2007> <http://example.org/stats/population> -1234567890 .";
+
+    let tokens = tokenize(&input, 0);
+
+    assert_eq!(
+        tokens,
+        vec![
+            Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+            Lexeme::Iri("http://example.org/stats/population".to_string()),
+            Lexeme::Unknown("-1234567890".to_string()),
+            Lexeme::EndToken,
+        ],
+    );
+}
+
+#[test]
+fn parse_decimal() {
+    let input =
+        "<http://somecountry.example/census2007> <http://example.org/stats/area> 4.002602 .";
+
+    let tokens = tokenize(&input, 0);
+
+    assert_eq!(
+        tokens,
+        vec![
+            Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+            Lexeme::Iri("http://example.org/stats/area".to_string()),
+            Lexeme::Unknown("4.002602".to_string()),
+            Lexeme::EndToken,
+        ],
+    );
+}
+
+#[test]
+fn parse_negative_decimal() {
+    let input =
+        "<http://somecountry.example/census2007> <http://example.org/stats/area> -4.002602 .";
+
+    let tokens = tokenize(&input, 0);
+
+    assert_eq!(
+        tokens,
+        vec![
+            Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+            Lexeme::Iri("http://example.org/stats/area".to_string()),
+            Lexeme::Unknown("-4.002602".to_string()),
+            Lexeme::EndToken,
+        ],
+    );
+}
+
+#[test]
+fn parse_double() {
+    let input =
+        "<http://somecountry.example/census2007> <http://example.org/stats/gravity> 1.663E-4 .";
+
+    let tokens = tokenize(&input, 0);
+
+    assert_eq!(
+        tokens,
+        vec![
+            Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+            Lexeme::Iri("http://example.org/stats/gravity".to_string()),
+            Lexeme::Unknown("1.663E-4".to_string()),
+            Lexeme::EndToken,
+        ],
+    );
+}
+
+#[test]
+fn parse_negative_double() {
+    let input =
+        "<http://somecountry.example/census2007> <http://example.org/stats/gravity> -1.663E-4 .";
+
+    let tokens = tokenize(&input, 0);
+
+    assert_eq!(
+        tokens,
+        vec![
+            Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+            Lexeme::Iri("http://example.org/stats/gravity".to_string()),
+            Lexeme::Unknown("-1.663E-4".to_string()),
+            Lexeme::EndToken,
+        ],
+    );
+}

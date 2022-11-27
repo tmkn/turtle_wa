@@ -337,4 +337,144 @@ mod parser {
             );
         }
     }
+
+    mod numbers {
+        mod integers {
+            use super::super::super::*;
+
+            #[test]
+            fn parse_positive_integer() {
+                let lexemes: &Vec<Lexeme> = &vec![
+                    Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+                    Lexeme::Iri("http://example.org/stats/population".to_string()),
+                    Lexeme::Unknown("1234567890".to_string()),
+                    Lexeme::EndToken,
+                ];
+                let mut context = ParseContext::new();
+                let triples = parse(&lexemes, &mut context);
+
+                assert_eq!(
+                    triples,
+                    vec![Triple {
+                        subject: Iri("http://somecountry.example/census2007".to_string()),
+                        predicate: Iri("http://example.org/stats/population".to_string()),
+                        object: Object::Integer(1234567890),
+                    },]
+                );
+            }
+
+            #[test]
+            fn parse_negative_integer() {
+                let lexemes: &Vec<Lexeme> = &vec![
+                    Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+                    Lexeme::Iri("http://example.org/stats/population".to_string()),
+                    Lexeme::Unknown("-1234567890".to_string()),
+                    Lexeme::EndToken,
+                ];
+                let mut context = ParseContext::new();
+                let triples = parse(&lexemes, &mut context);
+
+                assert_eq!(
+                    triples,
+                    vec![Triple {
+                        subject: Iri("http://somecountry.example/census2007".to_string()),
+                        predicate: Iri("http://example.org/stats/population".to_string()),
+                        object: Object::Integer(-1234567890),
+                    },]
+                );
+            }
+        }
+
+        mod decimals {
+            use super::super::super::*;
+
+            #[test]
+            fn parse_positive_integer() {
+                let lexemes: &Vec<Lexeme> = &vec![
+                    Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+                    Lexeme::Iri("http://example.org/stats/area".to_string()),
+                    Lexeme::Unknown("4.002602".to_string()),
+                    Lexeme::EndToken,
+                ];
+                let mut context = ParseContext::new();
+                let triples = parse(&lexemes, &mut context);
+
+                assert_eq!(
+                    triples,
+                    vec![Triple {
+                        subject: Iri("http://somecountry.example/census2007".to_string()),
+                        predicate: Iri("http://example.org/stats/area".to_string()),
+                        object: Object::Decimal(4.002602),
+                    },]
+                );
+            }
+
+            #[test]
+            fn parse_negative_decimal() {
+                let lexemes: &Vec<Lexeme> = &vec![
+                    Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+                    Lexeme::Iri("http://example.org/stats/area".to_string()),
+                    Lexeme::Unknown("-4.002602".to_string()),
+                    Lexeme::EndToken,
+                ];
+                let mut context = ParseContext::new();
+                let triples = parse(&lexemes, &mut context);
+
+                assert_eq!(
+                    triples,
+                    vec![Triple {
+                        subject: Iri("http://somecountry.example/census2007".to_string()),
+                        predicate: Iri("http://example.org/stats/area".to_string()),
+                        object: Object::Decimal(-4.002602),
+                    },]
+                );
+            }
+        }
+
+        mod doubles {
+            use super::super::super::*;
+
+            #[test]
+            fn parse_positive_double() {
+                let lexemes: &Vec<Lexeme> = &vec![
+                    Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+                    Lexeme::Iri("http://example.org/stats/area".to_string()),
+                    Lexeme::Unknown("1.663E-4".to_string()),
+                    Lexeme::EndToken,
+                ];
+                let mut context = ParseContext::new();
+                let triples = parse(&lexemes, &mut context);
+
+                assert_eq!(
+                    triples,
+                    vec![Triple {
+                        subject: Iri("http://somecountry.example/census2007".to_string()),
+                        predicate: Iri("http://example.org/stats/area".to_string()),
+                        object: Object::Double(0.0001663),
+                    },]
+                );
+            }
+
+            #[test]
+            fn parse_negative_double() {
+                let lexemes: &Vec<Lexeme> = &vec![
+                    Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+                    Lexeme::Iri("http://example.org/stats/area".to_string()),
+                    Lexeme::Unknown("-1.663E-4".to_string()),
+                    Lexeme::EndToken,
+                ];
+                let mut context = ParseContext::new();
+                let triples = parse(&lexemes, &mut context);
+
+                assert_eq!(
+                    triples,
+                    vec![Triple {
+                        subject: Iri("http://somecountry.example/census2007".to_string()),
+                        predicate: Iri("http://example.org/stats/area".to_string()),
+                        object: Object::Double(-0.0001663),
+                    },]
+                );
+            }
+        }
+    }
 }

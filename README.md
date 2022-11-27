@@ -22,8 +22,10 @@ The parser is currently able to parse the following things:
  - [x] `"literal"^^<http://www.w3.org/2001/XMLSchema#string>`
  - [x] object lists `"literal@en", <http://example/iri>, ...`
  - [x] predicate lists
- - [ ] numbers
- - [x] booleans
+ - [x] integer `2`
+ - [x] decimal `4.002602`
+ - [x] double `1.663E-4`
+ - [x] boolean
  - [ ] blank nodes
  - [ ] multi line literals
  - [ ] collections

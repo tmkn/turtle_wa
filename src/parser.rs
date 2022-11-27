@@ -11,6 +11,9 @@ pub enum Object {
     LangLiteral(String, String),
     DataTypeLiteral(String, String),
     Boolean(bool),
+    Integer(i32),
+    Decimal(f32),
+    Double(f64),
 }
 
 impl From<Iri> for Object {
@@ -194,6 +197,44 @@ pub fn parse(lexemes: &Vec<Lexeme>, context: &mut ParseContext) -> Vec<Triple> {
                 "false" => {
                     current_triple.2 = Some(Object::Boolean(false));
                 }
+                token => {
+                    if is_integer(token) {
+                        let test = token.parse::<i32>();
+
+                        match test {
+                            Ok(integer) => {
+                                current_triple.2 = Some(Object::Integer(integer));
+                            }
+                            Err(_) => {
+                                println!("Error parsing integer: {}", token);
+                            }
+                        }
+                    } else if is_decimal(token) {
+                        let test = token.parse::<f32>();
+
+                        match test {
+                            Ok(integer) => {
+                                current_triple.2 = Some(Object::Decimal(integer));
+                            }
+                            Err(_) => {
+                                println!("Error parsing decimal: {}", token);
+                            }
+                        }
+                    } else if is_double(token) {
+                        let test = token.parse::<f64>();
+
+                        match test {
+                            Ok(integer) => {
+                                current_triple.2 = Some(Object::Double(integer));
+                            }
+                            Err(_) => {
+                                println!("Error parsing double: {}", token);
+                            }
+                        }
+                    } else {
+                        println!("Unknown token: {}", token);
+                    }
+                }
                 _ => {
                     println!("Unknown token: {}", token);
                 }
@@ -213,6 +254,20 @@ pub fn parse(lexemes: &Vec<Lexeme>, context: &mut ParseContext) -> Vec<Triple> {
     }
 
     triples
+}
+
+fn is_integer(token: &str) -> bool {
+    token.parse::<i32>().is_ok()
+}
+
+fn is_decimal(token: &str) -> bool {
+    let has_mantissa = token.contains('E') || token.contains('e');
+
+    token.parse::<f32>().is_ok() && !has_mantissa
+}
+
+fn is_double(token: &str) -> bool {
+    token.parse::<f64>().is_ok()
 }
 
 pub fn parse_iri(lexeme: &Lexeme, context: &ParseContext) -> Option<Iri> {
