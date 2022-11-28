@@ -14,6 +14,7 @@ pub enum Object {
     Integer(i32),
     Decimal(f32),
     Double(f64),
+    MultilineLiteral(String),
 }
 
 impl From<Iri> for Object {
@@ -138,6 +139,9 @@ pub fn parse(lexemes: &Vec<Lexeme>, context: &mut ParseContext) -> Vec<Triple> {
                     literal.to_string(),
                     datatype.to_string(),
                 ));
+            }
+            Lexeme::MultilineLiteral(multiline) => {
+                current_triple.2 = Some(Object::MultilineLiteral(multiline.to_string()));
             }
             Lexeme::Prefix(key, value) => {
                 context.prefixes.insert(key.to_string(), value.to_string());

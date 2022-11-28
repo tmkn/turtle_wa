@@ -27,10 +27,11 @@ fn main() -> std::io::Result<()> {
     let now = Instant::now();
     let mut triples: Vec<Triple> = Vec::new();
     let mut context = ParseContext::new();
+    let mut lexer_context = LexerContext::new();
 
     let mut num_lines: u32 = 1;
     for line in f.lines() {
-        let tokens = lexer::tokenize(&line.unwrap(), num_lines);
+        let tokens = lexer::tokenize(&line.unwrap(), num_lines, &mut lexer_context);
         let new_triples = parser::parse(&tokens, &mut context);
 
         triples.extend(new_triples);

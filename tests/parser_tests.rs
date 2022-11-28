@@ -477,4 +477,44 @@ mod parser {
             }
         }
     }
+
+    mod multiline {
+        use super::super::*;
+
+        #[test]
+        fn parse_multiline() {
+            let lexemes: &Vec<Lexeme> = &vec![
+                Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+                Lexeme::Iri("http://example.org/stats/gravity".to_string()),
+                Lexeme::MultilineLiteral("hello multi\n\n line \"\" literal".to_string()),
+                Lexeme::EndToken,
+                Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+                Lexeme::Iri("http://example.org/stats/gravity".to_string()),
+                Lexeme::MultilineLiteral("hello multi\n\n line 2\"\" literal".to_string()),
+                Lexeme::EndToken,
+            ];
+            let mut context = ParseContext::new();
+            let triples = parse(&lexemes, &mut context);
+
+            assert_eq!(
+                triples,
+                vec![
+                    Triple {
+                        subject: Iri("http://somecountry.example/census2007".to_string()),
+                        predicate: Iri("http://example.org/stats/gravity".to_string()),
+                        object: Object::MultilineLiteral(
+                            "hello multi\n\n line \"\" literal".to_string()
+                        ),
+                    },
+                    Triple {
+                        subject: Iri("http://somecountry.example/census2007".to_string()),
+                        predicate: Iri("http://example.org/stats/gravity".to_string()),
+                        object: Object::MultilineLiteral(
+                            "hello multi\n\n line 2\"\" literal".to_string()
+                        ),
+                    },
+                ]
+            );
+        }
+    }
 }

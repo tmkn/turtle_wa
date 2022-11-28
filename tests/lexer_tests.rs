@@ -6,7 +6,7 @@ use turtle_wa::lexer::*;
 #[test]
 fn parse_base_turtle() {
     let base = "@base <http://example.org/> .";
-    let tokens = tokenize(base, 0);
+    let tokens = tokenize(base, 0, &mut LexerContext::new());
 
     assert_eq!(
         tokens,
@@ -20,7 +20,7 @@ fn parse_base_turtle() {
 #[test]
 fn parse_base_sparql() {
     let base = "BASE <http://example.org/> .";
-    let tokens = tokenize(base, 0);
+    let tokens = tokenize(base, 0, &mut LexerContext::new());
 
     assert_eq!(
         tokens,
@@ -33,7 +33,11 @@ fn parse_base_sparql() {
 
 #[test]
 fn parse_prefix_turtle_only_colon() {
-    let tokens = tokenize("@prefix : <http://example.org/> .", 0);
+    let tokens = tokenize(
+        "@prefix : <http://example.org/> .",
+        0,
+        &mut LexerContext::new(),
+    );
 
     assert_eq!(
         tokens,
@@ -46,7 +50,11 @@ fn parse_prefix_turtle_only_colon() {
 
 #[test]
 fn parse_prefix_sparql_only_colon() {
-    let tokens = tokenize("PREFIX : <http://example.org/> .", 0);
+    let tokens = tokenize(
+        "PREFIX : <http://example.org/> .",
+        0,
+        &mut LexerContext::new(),
+    );
 
     assert_eq!(
         tokens,
@@ -59,7 +67,11 @@ fn parse_prefix_sparql_only_colon() {
 
 #[test]
 fn parse_prefix_turtle() {
-    let tokens = tokenize("@prefix foo: <http://example.org/> .", 0);
+    let tokens = tokenize(
+        "@prefix foo: <http://example.org/> .",
+        0,
+        &mut LexerContext::new(),
+    );
 
     assert_eq!(
         tokens,
@@ -72,7 +84,11 @@ fn parse_prefix_turtle() {
 
 #[test]
 fn parse_prefix_sparql() {
-    let tokens = tokenize("PREFIX foo: <http://example.org/> .", 0);
+    let tokens = tokenize(
+        "PREFIX foo: <http://example.org/> .",
+        0,
+        &mut LexerContext::new(),
+    );
 
     assert_eq!(
         tokens,
@@ -86,8 +102,9 @@ fn parse_prefix_sparql() {
 #[test]
 fn parse_object_list_iri() {
     let input = "<http://example.org/subject> <http://example.org/predicate> <http://example.org/object1>, <http://example.org/object2> .";
+    let mut lexer_context = LexerContext::new();
 
-    let tokens = tokenize(&input, 0);
+    let tokens = tokenize(&input, 0, &mut lexer_context);
 
     assert_eq!(
         tokens,
@@ -105,8 +122,9 @@ fn parse_object_list_iri() {
 #[test]
 fn parse_comment() {
     let input = "<http://one.example/subject1> <http://one.example/predicate1> <http://one.example/object1> . # A triple with all absolute IRIs";
+    let mut lexer_context = LexerContext::new();
 
-    let tokens = tokenize(&input, 0);
+    let tokens = tokenize(&input, 0, &mut lexer_context);
 
     assert_eq!(
         tokens,
@@ -123,8 +141,9 @@ fn parse_comment() {
 #[test]
 fn parse_object_list_literal() {
     let input = "<http://example.org/#spiderman> <http://xmlns.com/foaf/0.1/name> \"Spiderman\", \"Человек-паук\"@ru .";
+    let mut lexer_context = LexerContext::new();
 
-    let tokens = tokenize(&input, 0);
+    let tokens = tokenize(&input, 0, &mut lexer_context);
 
     assert_eq!(
         tokens,
@@ -142,8 +161,9 @@ fn parse_object_list_literal() {
 #[test]
 fn parse_object_list_literal_2() {
     let input = "<http://example.org/#spiderman> <http://xmlns.com/foaf/0.1/name> \"Человек-паук\"@ru, \"Spiderman\" .";
+    let mut lexer_context = LexerContext::new();
 
-    let tokens = tokenize(&input, 0);
+    let tokens = tokenize(&input, 0, &mut lexer_context);
 
     assert_eq!(
         tokens,
@@ -161,8 +181,9 @@ fn parse_object_list_literal_2() {
 #[test]
 fn parse_object_list_literal_mix() {
     let input = "<http://example.org/#spiderman> <http://xmlns.com/foaf/0.1/name> \"Человек-паук\"@ru, <http://example.com/object>, \"Spiderman\"^^<http://www.w3.org/2001/XMLSchema#string> .";
+    let mut lexer_context = LexerContext::new();
 
-    let tokens = tokenize(&input, 0);
+    let tokens = tokenize(&input, 0, &mut lexer_context);
 
     assert_eq!(
         tokens,
@@ -191,8 +212,9 @@ fn parse_prefixed_uris() {
         ":subject foaf:name \"Alice\" .",
     ]
     .join("\n");
+    let mut lexer_context = LexerContext::new();
 
-    let tokens = tokenize(&input, 0);
+    let tokens = tokenize(&input, 0, &mut lexer_context);
 
     assert_eq!(
         tokens,
@@ -223,8 +245,9 @@ fn parse_predicate_list() {
         "        <http://xmlns.com/foaf/0.1/name> \"Spiderman\"@de ;",
         " 				<http://xmlns.com/foaf/0.1/name> \"Spiderman\" ."]
         .join("\n");
+    let mut lexer_context = LexerContext::new();
 
-    let tokens = tokenize(&input, 0);
+    let tokens = tokenize(&input, 0, &mut lexer_context);
 
     assert_eq!(
         tokens,
@@ -251,8 +274,9 @@ fn parse_boolean() {
         "    :isLandlocked false .           # xsd:boolean",
     ]
     .join("\n");
+    let mut lexer_context = LexerContext::new();
 
-    let tokens = tokenize(&input, 0);
+    let tokens = tokenize(&input, 0, &mut lexer_context);
 
     assert_eq!(
         tokens,
@@ -272,8 +296,9 @@ fn parse_boolean() {
 fn parse_integer() {
     let input =
         "<http://somecountry.example/census2007> <http://example.org/stats/population> 1234567890 .";
+    let mut lexer_context = LexerContext::new();
 
-    let tokens = tokenize(&input, 0);
+    let tokens = tokenize(&input, 0, &mut lexer_context);
 
     assert_eq!(
         tokens,
@@ -290,8 +315,9 @@ fn parse_integer() {
 fn parse_negative_integer() {
     let input =
         "<http://somecountry.example/census2007> <http://example.org/stats/population> -1234567890 .";
+    let mut lexer_context = LexerContext::new();
 
-    let tokens = tokenize(&input, 0);
+    let tokens = tokenize(&input, 0, &mut lexer_context);
 
     assert_eq!(
         tokens,
@@ -308,8 +334,9 @@ fn parse_negative_integer() {
 fn parse_decimal() {
     let input =
         "<http://somecountry.example/census2007> <http://example.org/stats/area> 4.002602 .";
+    let mut lexer_context = LexerContext::new();
 
-    let tokens = tokenize(&input, 0);
+    let tokens = tokenize(&input, 0, &mut lexer_context);
 
     assert_eq!(
         tokens,
@@ -326,8 +353,9 @@ fn parse_decimal() {
 fn parse_negative_decimal() {
     let input =
         "<http://somecountry.example/census2007> <http://example.org/stats/area> -4.002602 .";
+    let mut lexer_context = LexerContext::new();
 
-    let tokens = tokenize(&input, 0);
+    let tokens = tokenize(&input, 0, &mut lexer_context);
 
     assert_eq!(
         tokens,
@@ -344,8 +372,9 @@ fn parse_negative_decimal() {
 fn parse_double() {
     let input =
         "<http://somecountry.example/census2007> <http://example.org/stats/gravity> 1.663E-4 .";
+    let mut lexer_context = LexerContext::new();
 
-    let tokens = tokenize(&input, 0);
+    let tokens = tokenize(&input, 0, &mut lexer_context);
 
     assert_eq!(
         tokens,
@@ -362,8 +391,9 @@ fn parse_double() {
 fn parse_negative_double() {
     let input =
         "<http://somecountry.example/census2007> <http://example.org/stats/gravity> -1.663E-4 .";
+    let mut lexer_context = LexerContext::new();
 
-    let tokens = tokenize(&input, 0);
+    let tokens = tokenize(&input, 0, &mut lexer_context);
 
     assert_eq!(
         tokens,
@@ -371,6 +401,98 @@ fn parse_negative_double() {
             Lexeme::Iri("http://somecountry.example/census2007".to_string()),
             Lexeme::Iri("http://example.org/stats/gravity".to_string()),
             Lexeme::Unknown("-1.663E-4".to_string()),
+            Lexeme::EndToken,
+        ],
+    );
+}
+
+#[test]
+fn parse_multiline() {
+    let input = vec![
+        "<http://somecountry.example/census2007> <http://example.org/stats/gravity> \"\"\"hello multi",
+        "",
+        " line \"\" literal\"\"\" .",
+    ];
+
+    let mut i = 0;
+    let mut tokens: Vec<Lexeme> = vec![];
+    let mut lexer_context = LexerContext::new();
+
+    for line in input {
+        let mut line_tokens = tokenize(&line, i, &mut lexer_context);
+        tokens.append(&mut line_tokens);
+        i += 1;
+    }
+
+    assert_eq!(
+        tokens,
+        vec![
+            Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+            Lexeme::Iri("http://example.org/stats/gravity".to_string()),
+            Lexeme::MultilineLiteral("hello multi\n\n line \"\" literal".to_string()),
+            Lexeme::EndToken,
+        ],
+    );
+}
+
+#[test]
+fn parse_short_multiline() {
+    let input = vec![
+        "<http://somecountry.example/census2007> <http://example.org/stats/gravity> \"\"\"short multi line\"\"\" .",
+    ];
+
+    let mut i = 0;
+    let mut tokens: Vec<Lexeme> = vec![];
+    let mut lexer_context = LexerContext::new();
+
+    for line in input {
+        let mut line_tokens = tokenize(&line, i, &mut lexer_context);
+        tokens.append(&mut line_tokens);
+        i += 1;
+    }
+
+    assert_eq!(
+        tokens,
+        vec![
+            Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+            Lexeme::Iri("http://example.org/stats/gravity".to_string()),
+            Lexeme::MultilineLiteral("short multi line".to_string()),
+            Lexeme::EndToken,
+        ],
+    );
+}
+
+#[test]
+fn parse_multiple_multilines() {
+    let input = vec![
+        "<http://somecountry.example/census2007> <http://example.org/stats/gravity> \"\"\"hello multi",
+        "",
+        " line \"\" literal\"\"\" .",
+        "<http://somecountry.example/census2007> <http://example.org/stats/gravity> \"\"\"hello multi",
+        "",
+        " line 2\"\" literal\"\"\" .",
+    ];
+
+    let mut i = 0;
+    let mut tokens: Vec<Lexeme> = vec![];
+    let mut lexer_context = LexerContext::new();
+
+    for line in input {
+        let mut line_tokens = tokenize(&line, i, &mut lexer_context);
+        tokens.append(&mut line_tokens);
+        i += 1;
+    }
+
+    assert_eq!(
+        tokens,
+        vec![
+            Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+            Lexeme::Iri("http://example.org/stats/gravity".to_string()),
+            Lexeme::MultilineLiteral("hello multi\n\n line \"\" literal".to_string()),
+            Lexeme::EndToken,
+            Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+            Lexeme::Iri("http://example.org/stats/gravity".to_string()),
+            Lexeme::MultilineLiteral("hello multi\n\n line 2\"\" literal".to_string()),
             Lexeme::EndToken,
         ],
     );
