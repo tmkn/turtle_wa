@@ -517,4 +517,114 @@ mod parser {
             );
         }
     }
+
+    mod parse_literal {
+        use super::super::*;
+
+        #[test]
+        fn parse_string_literal() {
+            let lexemes: &Vec<Lexeme> = &vec![
+                Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+                Lexeme::Iri("http://example.org/stats/area".to_string()),
+                Lexeme::Literal("This is a string literal".to_string()),
+                Lexeme::EndToken,
+            ];
+            let mut context = ParseContext::new();
+            let triples = parse(&lexemes, &mut context);
+
+            assert_eq!(
+                triples,
+                vec![Triple {
+                    subject: Iri("http://somecountry.example/census2007".to_string()),
+                    predicate: Iri("http://example.org/stats/area".to_string()),
+                    object: Object::Literal("This is a string literal".to_string()),
+                },]
+            );
+        }
+
+        #[test]
+        fn parse_string_literal_with_language() {
+            let lexemes: &Vec<Lexeme> = &vec![
+                Lexeme::Iri("http://somecountry.example/census2007".to_string()),
+                Lexeme::Iri("http://example.org/stats/area".to_string()),
+                Lexeme::LangLiteral("This is a string literal".to_string(), "en".to_string()),
+                Lexeme::EndToken,
+            ];
+            let mut context = ParseContext::new();
+            let triples = parse(&lexemes, &mut context);
+
+            assert_eq!(
+                triples,
+                vec![Triple {
+                    subject: Iri("http://somecountry.example/census2007".to_string()),
+                    predicate: Iri("http://example.org/stats/area".to_string()),
+                    object: Object::LangLiteral(
+                        "This is a string literal".to_string(),
+                        "en".to_string()
+                    ),
+                },]
+            );
+        }
+
+        #[test]
+        fn parse_with_datatype() {
+            let lexemes = &vec![
+                Lexeme::Iri("http://example.org/vocab/show/218".to_string()),
+                Lexeme::Iri("http://www.w3.org/2000/01/rdf-schema#label".to_string()),
+                Lexeme::DataTypeLiteral(
+                    "That Seventies Show".to_string(),
+                    "http://www.w3.org/2001/XMLSchema#string".to_string(),
+                ),
+                Lexeme::EndToken,
+            ];
+            let mut context = ParseContext::new();
+
+            let triples = parse(&lexemes, &mut context);
+
+            assert_eq!(
+                triples,
+                vec![Triple {
+                    subject: Iri("http://example.org/vocab/show/218".to_string()),
+                    predicate: Iri("http://www.w3.org/2000/01/rdf-schema#label".to_string()),
+                    object: Object::DataTypeLiteral(
+                        "That Seventies Show".to_string(),
+                        "http://www.w3.org/2001/XMLSchema#string".to_string()
+                    ),
+                },]
+            );
+        }
+
+        #[test]
+        fn parse_with_datatype_prefixed_iri() {
+            let lexemes = &vec![
+                Lexeme::Prefix(
+                    "xsd:".to_string(),
+                    "http://www.w3.org/2001/XMLSchema#".to_string(),
+                ),
+                Lexeme::EndToken,
+                Lexeme::Iri("http://example.org/vocab/show/218".to_string()),
+                Lexeme::Iri("http://www.w3.org/2000/01/rdf-schema#label".to_string()),
+                Lexeme::DataTypeLiteral(
+                    "That Seventies Show".to_string(),
+                    "xsd:string".to_string(),
+                ),
+                Lexeme::EndToken,
+            ];
+            let mut context = ParseContext::new();
+
+            let triples = parse(&lexemes, &mut context);
+
+            assert_eq!(
+                triples,
+                vec![Triple {
+                    subject: Iri("http://example.org/vocab/show/218".to_string()),
+                    predicate: Iri("http://www.w3.org/2000/01/rdf-schema#label".to_string()),
+                    object: Object::DataTypeLiteral(
+                        "That Seventies Show".to_string(),
+                        "http://www.w3.org/2001/XMLSchema#string".to_string()
+                    ),
+                },]
+            );
+        }
+    }
 }

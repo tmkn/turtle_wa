@@ -191,6 +191,7 @@ fn read_iri(itr: &mut Peekable<Enumerate<Chars>>) -> Lexeme {
                 found_end = true;
                 break;
             }
+            ' ' | '\t' => break,
             _ => {
                 iri.push(*c);
                 itr.next();
@@ -200,7 +201,7 @@ fn read_iri(itr: &mut Peekable<Enumerate<Chars>>) -> Lexeme {
 
     match (found_start, found_end) {
         (true, true) => Lexeme::Iri(iri),
-        (_, _) => Lexeme::Unknown(iri),
+        (_, _) => Lexeme::PrefixedIri(iri),
     }
 }
 
@@ -244,6 +245,7 @@ fn read_literal(
 
                     match data_type {
                         Lexeme::Iri(iri) => Some(Lexeme::DataTypeLiteral(literal, iri)),
+                        Lexeme::PrefixedIri(iri) => Some(Lexeme::DataTypeLiteral(literal, iri)),
                         _ => Some(Lexeme::Unknown(literal)),
                     }
                 }
